@@ -1,0 +1,2 @@
+module DddDomain
+end
