@@ -7,11 +7,11 @@ require "ddd_domain/version"
 Gem::Specification.new do |s|
   s.name        = "ddd_domain"
   s.version     = DddDomain::VERSION
-  s.authors     = [""]
-  s.email       = [""]
-  s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of DddDomain."
-  s.description = "TODO: Description of DddDomain."
+  s.authors     = ["FUNABARA Masao"]
+  s.email       = ["masao@masoo.jp"]
+  s.homepage    = "https://github.com/masoo/ddd_domain"
+  s.summary     = "It supports the domain of Domain Driven Design."
+  s.description = "It generate the domain of Domain Driven Design."
   s.license     = "MIT"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
