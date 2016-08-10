@@ -1,6 +1,6 @@
 # ddd_domain
 
-[![Gem Version](https://badge.fury.io/rb/ddd_domain.svg)](https://badge.fury.io/rb/ddd_domain)[![Gem Version](https://badge.fury.io/rb/ddd_domain.svg)](https://badge.fury.io/rb/ddd_domain)
+[![Gem Version](https://badge.fury.io/rb/ddd_domain.svg)](https://badge.fury.io/rb/ddd_domain)
 
 ## Installation
 
