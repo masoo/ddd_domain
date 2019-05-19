@@ -6,16 +6,18 @@ class DomainsGenerator < Rails::Generators::NamedBase
     create_file "app/domains/#{file_name}/.keep"
 
     if File.exists? "config/initializers/ddd_domain.rb"
-      inject_into_file 'config/initializers/ddd_domain.rb' do
+      inject_into_file 'config/initializers/ddd_domain.rb', :before => "end" do
         <<-"RUBY"
+  config.paths.add 'app/domains/#{file_name}', eager_load: true
+        RUBY
+      end
+    else
+      create_file 'config/initializers/ddd_domain.rb' do
+        <<~"RUBY"
           Rails.configuration do |config|
             config.paths.add 'app/domains/#{file_name}', eager_load: true
           end
         RUBY
-      end
-    else
-      inject_into_file 'config/initializers/ddd_domain.rb', :before => "end" do
-        config.paths.add 'app/domains/#{file_name}', eager_load: true
       end
     end
   end
