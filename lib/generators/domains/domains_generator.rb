@@ -5,20 +5,17 @@ class DomainsGenerator < Rails::Generators::NamedBase
     empty_directory "app/domains/#{file_name}"
     create_file "app/domains/#{file_name}/.keep"
 
-    if File.exists? "config/application.rb"
-      inject_into_file 'config/application.rb', :before => "  end\nend" do
+    if File.exists? "config/initializers/ddd_domain.rb"
+      inject_into_file 'config/initializers/ddd_domain.rb' do
         <<-"RUBY"
-
-    # Configure load paths for DDD domain #{file_name}
-    config.autoload_paths += %W(\#{config.root}/app/domains/#{file_name})
+          Rails.configuration do |config|
+            config.paths.add 'app/domains/#{file_name}', eager_load: true
+          end
         RUBY
       end
-    elsif File.exists? "lib/#{namespace.to_s.underscore}/engine.rb"
-      inject_into_file "lib/#{namespace.to_s.underscore}/engine.rb", :before => "  end\nend" do
-        <<-"RUBY"
-
-    config.autoload_paths += %W(\#{config.root}/app/domains/#{file_name})
-        RUBY
+    else
+      inject_into_file 'config/initializers/ddd_domain.rb', :before => "end" do
+        config.paths.add 'app/domains/#{file_name}', eager_load: true
       end
     end
   end
