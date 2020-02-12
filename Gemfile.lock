@@ -121,6 +121,7 @@ PLATFORMS
 
 DEPENDENCIES
   ddd_domain!
+  minitest
   sqlite3
 
 BUNDLED WITH
