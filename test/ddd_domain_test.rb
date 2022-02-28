@@ -1,7 +1,7 @@
-require 'test_helper'
+require "test_helper"
 
 class DddDomainTest < ActiveSupport::TestCase
-  test "truth" do
-    assert_kind_of Module, DddDomain
+  test "it has a version number" do
+    assert DddDomain::VERSION
   end
 end
