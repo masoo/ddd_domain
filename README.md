@@ -7,7 +7,9 @@
 Add to your Gemfile:
 
 ```ruby
-gem 'ddd_domain'
+gem "ddd_domain", "~> 1.3" # for rails 7.x
+gem "ddd_domain", "~> 1.2" # for rails 6.x
+gem "ddd_domain", "~> 1.1" # for rails 5.2.x
 ```
 
 Run the `bundle` command to install.
