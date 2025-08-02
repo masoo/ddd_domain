@@ -13,6 +13,7 @@ Gem::Specification.new do |s|
   s.summary     = "It supports the domain of Domain Driven Design."
   s.description = "It generate the domain of Domain Driven Design."
   s.license     = "MIT"
+  s.required_ruby_version = ">= 2.7.0"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]
