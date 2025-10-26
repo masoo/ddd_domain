@@ -7,6 +7,7 @@
 Add to your Gemfile:
 
 ```ruby
+gem "ddd_domain", "~> 1.5" # for rails 8.1.x
 gem "ddd_domain", "~> 1.4" # for rails 8.0.x
 gem "ddd_domain", "~> 1.3" # for rails 7.x
 ```
