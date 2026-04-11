@@ -110,7 +110,7 @@ tasks:
   build:
     desc: gem をビルド
     cmds:
-      - gem build {{.GEMSPEC_FILE}}
+      - bundle exec rake build
 
   release:
     desc: リリース（VERSION=x.x.x を指定）
@@ -186,40 +186,15 @@ tasks:
 
         # 確認プロンプト
         echo ""
-        read -p "タグ作成・GitHub プッシュ・gem リリースを実行しますか？ (y/N): " CONFIRM
+        read -p "rake release を実行しますか？（タグ作成・GitHub プッシュ・gem リリース） (y/N): " CONFIRM
         if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
           echo "中止しました。"
           exit 1
         fi
 
-        # タグ作成
-        echo "=> タグ v$VERSION を作成します..."
-        git tag "v$VERSION"
-
-        # GitHub へ push
-        echo "=> GitHub へプッシュします..."
-        git push origin "$BRANCH"
-        git push origin "v$VERSION"
-
-        # gem build & push
-        echo ""
-        echo "=> gem をビルドします..."
-        gem build {{.GEMSPEC_FILE}}
-
-        GEM_FILE="ddd_domain-$VERSION.gem"
-        if [ ! -f "$GEM_FILE" ]; then
-          echo "エラー: $GEM_FILE が見つかりません。"
-          exit 1
-        fi
-
-        read -p "$GEM_FILE を RubyGems にプッシュしますか？ (y/N): " CONFIRM_GEM
-        if [ "$CONFIRM_GEM" != "y" ] && [ "$CONFIRM_GEM" != "Y" ]; then
-          echo "gem push をスキップしました。手動で実行してください: gem push $GEM_FILE"
-          exit 0
-        fi
-
-        echo "=> RubyGems にプッシュします..."
-        gem push "$GEM_FILE"
+        # rake release（タグ作成・git push・gem build・gem push を一括実行）
+        echo "=> rake release を実行します..."
+        bundle exec rake release
 
         echo ""
         echo "========================================"
