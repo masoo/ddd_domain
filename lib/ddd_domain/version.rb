@@ -1,3 +1,3 @@
 module DddDomain
-  VERSION = "1.3.8"
+  VERSION = "1.3.9"
 end
