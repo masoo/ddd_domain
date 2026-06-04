@@ -1,0 +1,202 @@
+version: '3'
+
+vars:
+  VERSION_FILE: lib/ddd_domain/version.rb
+  GEMSPEC_FILE: ddd_domain.gemspec
+
+silent: true
+
+tasks:
+  default:
+    desc: help
+    deps:
+      - help
+  version:
+    desc: 現在のバージョンとブランチを表示
+    cmds:
+      - |
+        BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        CURRENT_VERSION=$(grep -oP 'VERSION = "\K[^"]+' {{.VERSION_FILE}})
+        echo "ブランチ: $BRANCH"
+        echo "現在のバージョン: $CURRENT_VERSION"
+  help:
+    desc: list all tasks
+    silent: true
+    cmds:
+      - task --list-all
+
+  check:
+    desc: リリース前の整合性チェック（read-only）
+    cmds:
+      - |
+        set -e
+
+        VERSION=$(grep -oP 'VERSION = "\K[^"]+' {{.VERSION_FILE}})
+        BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        LOCK_VERSION=$(grep -A1 '  ddd_domain' Gemfile.lock | grep -oP '\(\K[^)]+' | head -1)
+        ERRORS=0
+
+        echo "========================================"
+        echo "リリース前チェック"
+        echo "========================================"
+        echo "ブランチ:           $BRANCH"
+        echo "version.rb:         $VERSION"
+        echo "Gemfile.lock:       $LOCK_VERSION"
+        echo "========================================"
+        echo ""
+
+        # 1. version.rb と Gemfile.lock の一致チェック
+        if [ "$VERSION" = "$LOCK_VERSION" ]; then
+          echo "✔ version.rb と Gemfile.lock のバージョンが一致 ($VERSION)"
+        else
+          echo "✘ version.rb ($VERSION) と Gemfile.lock ($LOCK_VERSION) のバージョンが不一致"
+          echo "  → bundle install を実行してください"
+          ERRORS=$((ERRORS + 1))
+        fi
+
+        # 2. ブランチ名とバージョンプレフィックスの整合性
+        case "$BRANCH" in
+          main)
+            PREFIX="1.5"
+            ;;
+          [0-9]*_[0-9]*)
+            PREFIX=$(echo "$BRANCH" | sed 's/_/./g')
+            ;;
+          *)
+            echo "✘ 不明なブランチ '$BRANCH' です。リリースブランチ(1_3, 1_4, 1_5)または main から実行してください。"
+            ERRORS=$((ERRORS + 1))
+            PREFIX=""
+            ;;
+        esac
+
+        if [ -n "$PREFIX" ]; then
+          if [[ "$VERSION" == "$PREFIX"* ]]; then
+            echo "✔ バージョン ($VERSION) はブランチ ($BRANCH, プレフィックス: $PREFIX) と整合"
+          else
+            echo "✘ バージョン ($VERSION) がブランチ ($BRANCH, プレフィックス: $PREFIX) と不整合"
+            ERRORS=$((ERRORS + 1))
+          fi
+        fi
+
+        # 3. git タグの重複チェック
+        if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+          echo "✘ タグ v$VERSION は既に存在します（バージョン上げ忘れの可能性）"
+          ERRORS=$((ERRORS + 1))
+        else
+          echo "✔ タグ v$VERSION は未作成"
+        fi
+
+        # 4. RubyGems 公開済みチェック
+        PUBLISHED=$(gem list ddd_domain --remote --exact 2>/dev/null || true)
+        if echo "$PUBLISHED" | grep -q "$VERSION"; then
+          echo "✘ バージョン $VERSION は RubyGems に公開済みです（バージョン上げ忘れの可能性）"
+          ERRORS=$((ERRORS + 1))
+        else
+          echo "✔ バージョン $VERSION は RubyGems に未公開"
+        fi
+
+        # 5. 結果サマリー
+        echo ""
+        echo "========================================"
+        if [ "$ERRORS" -eq 0 ]; then
+          echo "すべてのチェックに合格しました。"
+          echo "リリース準備完了: task release VERSION=$VERSION"
+        else
+          echo "チェックに $ERRORS 件の問題があります。修正してください。"
+          exit 1
+        fi
+        echo "========================================"
+
+  build:
+    desc: gem をビルド
+    cmds:
+      - bundle exec rake build
+
+  release:
+    desc: リリース（VERSION=x.x.x を指定）
+    requires:
+      vars:
+        - VERSION
+    cmds:
+      - |
+        set -e
+
+        VERSION="{{.VERSION}}"
+        BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        CURRENT_VERSION=$(grep -oP 'VERSION = "\K[^"]+' {{.VERSION_FILE}})
+
+        # ブランチ名からバージョンプレフィックスを導出
+        case "$BRANCH" in
+          main)
+            PREFIX="1.5"
+            ;;
+          [0-9]*_[0-9]*)
+            PREFIX=$(echo "$BRANCH" | sed 's/_/./g')
+            ;;
+          *)
+            echo "エラー: 不明なブランチ '$BRANCH' です。リリースブランチ(1_3, 1_4, 1_5)または main から実行してください。"
+            exit 1
+            ;;
+        esac
+
+        echo "========================================"
+        echo "リリース準備"
+        echo "========================================"
+        echo "ブランチ:           $BRANCH"
+        echo "ブランチプレフィックス: $PREFIX"
+        echo "バージョン:         $VERSION"
+        echo "========================================"
+
+        # VERSION がブランチのプレフィックスと一致するか検証
+        if [[ "$VERSION" != "$PREFIX"* ]]; then
+          echo ""
+          echo "エラー: バージョン '$VERSION' はブランチ '$BRANCH' (プレフィックス: $PREFIX) と一致しません。"
+          exit 1
+        fi
+
+        # セマンティックバージョニングの形式チェック
+        if ! echo "$VERSION" | grep -qP '^\d+\.\d+\.\d+$'; then
+          echo ""
+          echo "エラー: バージョン '$VERSION' は正しい形式（x.x.x）ではありません。"
+          exit 1
+        fi
+
+        # ワーキングツリーがクリーンか確認
+        if [ -n "$(git status --porcelain)" ]; then
+          echo ""
+          echo "エラー: ワーキングツリーにコミットされていない変更があります。"
+          git status --short
+          exit 1
+        fi
+
+        # タグが既に存在するか確認
+        if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+          echo ""
+          echo "エラー: タグ 'v$VERSION' は既に存在します。"
+          exit 1
+        fi
+
+        # version.rb の VERSION と指定バージョンの一致確認
+        if [ "$CURRENT_VERSION" != "$VERSION" ]; then
+          echo ""
+          echo "エラー: version.rb ($CURRENT_VERSION) と指定バージョン ($VERSION) が一致しません。"
+          echo "先に version.rb を更新してコミットしてください。"
+          exit 1
+        fi
+
+        # 確認プロンプト
+        echo ""
+        read -p "rake release を実行しますか？（タグ作成・GitHub プッシュ・gem リリース） (y/N): " CONFIRM
+        if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
+          echo "中止しました。"
+          exit 1
+        fi
+
+        # rake release（タグ作成・git push・gem build・gem push を一括実行）
+        echo "=> rake release を実行します..."
+        bundle exec rake release
+
+        echo ""
+        echo "========================================"
+        echo "リリース v$VERSION 完了！"
+        echo "========================================"
