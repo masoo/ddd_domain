@@ -63,7 +63,7 @@ tasks:
             PREFIX=$(echo "$BRANCH" | sed 's/_/./g')
             ;;
           *)
-            echo "✘ 不明なブランチ '$BRANCH' です。リリースブランチ(1_3, 1_4, 1_5)または main から実行してください。"
+            echo "✘ 不明なブランチ '$BRANCH' です。リリースブランチ(1_4, 1_5)または main から実行してください。"
             ERRORS=$((ERRORS + 1))
             PREFIX=""
             ;;
@@ -134,7 +134,7 @@ tasks:
             PREFIX=$(echo "$BRANCH" | sed 's/_/./g')
             ;;
           *)
-            echo "エラー: 不明なブランチ '$BRANCH' です。リリースブランチ(1_3, 1_4, 1_5)または main から実行してください。"
+            echo "エラー: 不明なブランチ '$BRANCH' です。リリースブランチ(1_4, 1_5)または main から実行してください。"
             exit 1
             ;;
         esac
