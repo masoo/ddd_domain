@@ -1,0 +1,12 @@
+Description:
+    Creates an initializer that explains where DddDomain::DomainResult comes
+    from and lets you refer to it as DomainResult.
+
+    The assignment is commented out by default. Uncomment it if you prefer the
+    shorter name.
+
+Example:
+    rails generate domain_result
+
+    This will create:
+        config/initializers/domain_result.rb

@@ -1,15 +1,15 @@
 Description:
-    Domain Driven Design（DDD）のドメイン構造を作成するジェネレーターです。
-    指定された名前でドメインディレクトリを app/domains 配下に作成します。
+    Creates the domain structure of Domain Driven Design (DDD).
+    It creates a domain directory with the given name under app/domains.
 
 Example:
     rails generate domains user
     rails generate domains order
     rails generate domains product
 
-    これにより以下が作成されます:
+    This will create:
         app/domains/[domain_name]/
         app/domains/[domain_name]/.keep
 
-    作成されたディレクトリには、DDDのドメインロジック（エンティティ、
-    値オブジェクト、ドメインサービスなど）を配置することができます。
+    Put your DDD domain logic (entities, value objects, domain services,
+    etc.) in the created directory.

@@ -16,7 +16,6 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 3.2.0"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
-  s.test_files = Dir["test/**/*"]
 
   s.add_dependency "railties", "~> 8.0.0"
 end
